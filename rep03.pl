@@ -32,7 +32,7 @@ conc([X|L1], L2, [X|L3]) :- conc(L1, L2, L3).
     	S=[a];
     	…  */
 subs([],[]).
-subs([_|Tail],[_|Sub]) :- subs(Tail,Sub).
+subs([Head|Tail],[Head|Sub]) :- subs(Tail,Sub).
 subs([_|Tail],Sub) :- subs(Tail,Sub).
 /*（実行例）     
 
