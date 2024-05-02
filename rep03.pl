@@ -17,6 +17,9 @@ conc([X|L1], L2, [X|L3]) :- conc(L1, L2, L3).
 del(X,[X|Tail],Tail).
 del(X,[Y|Tail],[Y|Tail1]) :-del(X,Tail,Tail1).
 insert(X,List,BiggerList) :- del(X,BiggerList,List).
+
+:- op(300,xfx,plays).
+:- op(200,xfy,and).
 /*
 問題3.8 (教科書p.79)
 
