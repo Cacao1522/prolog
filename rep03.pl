@@ -1,4 +1,3 @@
-
 % rep03: 第3回 演習課題レポート
 % 提出日: 2024年4月27日
 % 学籍番号: 34714037
@@ -15,6 +14,9 @@ mem(X, [Head | Tail]) :- mem(X, Tail).
 conc([], L, L).
 conc([X|L1], L2, [X|L3]) :- conc(L1, L2, L3).
 
+del(X,[X|Tail],Tail).
+del(X,[Y|Tail],[Y|Tail1]) :-del(X,Tail,Tail1).
+insert(X,List,BiggerList) :- del(X,BiggerList,List).
 /*
 問題3.8 (教科書p.79)
 
@@ -31,13 +33,18 @@ conc([X|L1], L2, [X|L3]) :- conc(L1, L2, L3).
     	S=[a,c];
     	S=[a];
     	…  */
+
 subs([],[]).
 subs([Head|Tail],[Head|Sub]) :- subs(Tail,Sub).
 subs([_|Tail],Sub) :- subs(Tail,Sub).
+
+permutation([],[]).
+permutation([X|L],P) :- permutation(L,L1),insert(X,L1,P).
+subs2(A,P) :- subs(A,B),permutation(B,P).
 /*（実行例）     
 
 (説明)
-[_, _, _]で３要素をもつリストを表現できる。concを使う場合、結合前のリストの片方を変数問題3.11 (教科書p.80)
+
 
 問題3.11 (教科書p.80)
 
@@ -46,11 +53,13 @@ subs([_|Tail],Sub) :- subs(Tail,Sub).
 を定義せよ．ただしListはリストのリストで，FlatListはListの部分リスト(またはそのまた部分リスト)の要素が
 平板なリストとなるように，Listを平滑化したものである．たとえば，
 	?-flat([a,b,[c,d],[],[[[e]]],f],L).
-	  L=[a,b,c,d,e,f]
+	  L=[a,b,c,d,e,f]*/
 
+flat([],[]).
+flat(X,[X]).
+flat([Head|Tail],List) :- flat(Head,FlatHead),flat(Tail,FlatTail),conc(FlatHead,FlatTail),conc(FlatHead,FlatTail,List).
 
-
-（実行例）
+/*（実行例）
 
 
 (説明)
@@ -63,7 +72,7 @@ concは１度に１つのリストしか消すことができないので、２�
 というオペレータ定義を仮定すると，次の2つの項は構文的に正しいオブジェクトである．
     Term1 = jimmy plays football and squash
     Term2 = susan plays tennis and basketball and volleyball
-これらの項はPrologによりいかに解釈されるか．その主関数子と構造を示せ．
+これらの項はPrologによりいかに解釈されるか．その主関数子と構造を示せ．*/
 
 
 /*（実行例）
