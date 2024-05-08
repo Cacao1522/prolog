@@ -54,6 +54,7 @@ different(X,Y):-X\==Y.
     血縁関係等を参考に各自でDBをつくり確認すること．
 */
 twins(Child1,Child2) :- family(_,_,Children),del(Child1,Children,OtherChildren),mem(Child2,OtherChildren),dateofbirth(Child1,Date),dateofbirth(Child2,Date).
+twins2(Child1,Child2) :- family(_,_,Children),mem(Child1,Children),mem(Child2,Children),dateofbirth(Child1,Date),dateofbirth(Child2,Date),different(Child1,Child2).
 cousin(P1,P2) :- parent(X,Y),parent(Y,P1),parent(X,Z),parent(Z,P2),different(Y,Z).
 
 /*（実行例）   
@@ -61,14 +62,11 @@ cousin(P1,P2) :- parent(X,Y),parent(Y,P1),parent(X,Z),parent(Z,P2),different(Y,Z
 (説明)
 上の再帰ルールを適用する場合は第１引数のリストの要素が出力部分集合には残り、下の再帰ルールを適用する場合は第１引数のリストの要素が出力部分集合には残らない。これらのルールが非決定的に適応されるので、すべての部分集合を生成することができる。順番を入れ替えたものをすべて出力するために、リストの置換を生成する関係permutationを用意し、subsの後に適用させた。permutationを実現するためにdelとinsertも用意した。
 
-問題3.11 (教科書p.80)
+練習4.5 (p.105)
 
-関係
-	flat(List,FlatList)
-を定義せよ．ただしListはリストのリストで，FlatListはListの部分リスト(またはそのまた部分リスト)の要素が
-平板なリストとなるように，Listを平滑化したものである．たとえば，
-	?-flat([a,b,[c,d],[],[[[e]]],f],L).
-	  L=[a,b,c,d,e,f]*/
+    acceptsの実行時のループは，たとえばそこまでの動作回数を数えることにより回避できる．
+    そうすると，シュミレータはある決められた長さの道だけを探すように求められる．acceptsをそのように修正せよ．
+    教科書P.104のaccepts/2のプログラムでは無限ループに陥るようなオートマトンを用意して動作確認を行うこと．*/
 
 flat([Head|Tail],List) :- flat(Head,FlatHead),flat(Tail,FlatTail),conc(FlatHead,FlatTail,List). 
 flat([],[]). % 空リストのflat(Head,FlatHead)flat(Tail,FlatTail)、多重リストのflat(Tail,FlatTail)はこれを満たす
