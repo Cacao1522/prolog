@@ -126,7 +126,7 @@ S = [a, c] .
 
 flat([Head|Tail],List) :- flat(Head,FlatHead),flat(Tail,FlatTail),conc(FlatHead,FlatTail,List). 
 flat([],[]). % 空リストのflat(Head,FlatHead)flat(Tail,FlatTail)、多重リストのflat(Tail,FlatTail)はこれを満たす
-flat(X,[X]). % 通常要素、多重リストのflat(Head,FlatHead)はこれを満たす
+flat(X,[X]) :- atomic(X),X \== []. % 通常要素、多重リストのflat(Head,FlatHead)はこれを満たす
 
 /*（実行例）
 ?- flat([a,b,[c,d],[],[[[e]]],f],L).
