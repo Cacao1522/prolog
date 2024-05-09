@@ -68,9 +68,9 @@ cousin(P1,P2) :- parent(X,Y),parent(Y,P1),parent(X,Z),parent(Z,P2),different(Y,Z
     そうすると，シュミレータはある決められた長さの道だけを探すように求められる．acceptsをそのように修正せよ．
     教科書P.104のaccepts/2のプログラムでは無限ループに陥るようなオートマトンを用意して動作確認を行うこと．*/
 
-flat([Head|Tail],List) :- flat(Head,FlatHead),flat(Tail,FlatTail),conc(FlatHead,FlatTail,List). 
-flat([],[]). % 空リストのflat(Head,FlatHead)flat(Tail,FlatTail)、多重リストのflat(Tail,FlatTail)はこれを満たす
-flat(X,[X]) :- atomic(X),X \== []. % 通常要素、多重リストのflat(Head,FlatHead)はこれを満たす
+accepts(S,[],_) :- final(S).
+accepts(S,[X|Rest],MaxMoves) :- MaxMoves>0,trans(S,X,S1),NewMax is MaxMoves - 1,accepts(S1,Rest).
+accepts(S,String,MaxMoves) :- MaxMoves>0,silent(S,S1),NewMax is MaxMoves - 1,accepts(S1,String,NewMax).
 
 /*（実行例）
 
