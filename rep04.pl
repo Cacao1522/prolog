@@ -46,6 +46,17 @@ parent(X,Y) :- family(X,_,Children),mem(Y,Children).
 parent(X,Y) :- family(_,X,Children),mem(Y,Children).
 grandparent(X,Z) :- parent(X,Y),parent(Y,Z).
 different(X,Y):-X\==Y.
+
+final(s3).
+trans(s1,a,s1).
+trans(s1,a,s2).
+trans(s1,b,s1).
+trans(s2,b,s3).
+trans(s3,b,s4).
+
+silent(s2,s4).
+silent(s3,s1).
+silent(s1,s3).
 /*
 練習4.2 (p.98)
 
@@ -79,51 +90,4 @@ accepts(S,String,MaxMoves) :- MaxMoves>0,silent(S,S1),NewMax is MaxMoves - 1,acc
 flat([],[]).
 flat(X,[X]).
 を先にするとflat(Head,FlatHead),flat(Tail,FlatTail)がすぐに事実を満たしてしまい、出力が大量になる。flatの第1引数が[Head|Tail]に分割できる間、先頭Headのリストが外れるまで再帰的に呼び出される。その後リストTailの先頭のリストを同様の手順で外していく。
-
-
-問題3.12 (教科書p.85)  
-    :- op(300,xfx,plays).
-    :- op(200,xfy,and).
-というオペレータ定義を仮定すると，次の2つの項は構文的に正しいオブジェクトである．
-    Term1 = jimmy plays football and squash
-    Term2 = susan plays tennis and basketball and volleyball
-これらの項はPrologによりいかに解釈されるか．その主関数子と構造を示せ．
-
-Term1 = plays(jimmy,and(football,squash))
-Term2 = plays(susan,and(tennis,and(basketball, volleyball)))
-
-（実行例）
-
-(説明)
-オペレータは順位が低いほど結合力が強いので、playsよりもandの方が先に結合する。andはxfyなので、andが連続する場合は右のandが先に結合する。実行結果を見ると、構文的に正しければ括弧なしで表現できている。Term3はplaysが２つあるが、playsはxfxなので括弧を使わなければ構文的に正しくない。
-
-問題3.21 (教科書p.92)  
-手続き
-    bet(N1,N2,X)
-が，与えられた２つの整数N1,N2に対して，制約N1≦X≦N2を満たすすべての整数Xをバックトラックにより
-生成するよう定義せよ．
-*/
-bet(N1,N2,N1) :- N1 =< N2.
-bet(N1,N2,X) :- N1 < N2, N1_new is N1 + 1, bet(N1_new,N2,X).
-% または
-bet2(N1,N2,N2) :- N1 =< N2.
-bet2(N1,N2,X) :- N1 < N2, N2_new is N2 - 1, bet2(N1,N2_new,X).
-
-/*（実行例）
-
-(説明)
-第１引数をインクリメントまたは第２引数をデクリメントしながら調べる。bet(N1,N2,N1) :- N1 =< N2.で条件を満たしていればN1を出力する。N1==N2となるとN1 < N2を満たさず終了する。算術計算は（変数）is（計算式）という形式で書く。普通if文で書くところは連言でつなぐ。
-
-問題3.9-別解
-conc(A, B, C)とlength(D, E)(p.90)を用いてdividelist(F, G, H)の別解dividelist2(F, G, H)を定義せよ．
-lengthは組込み述語が存在するので述語名をlenとせよ．
-
-*/
-dividelist2(List1,List2,List3) :- permutation(List1,P),conc(List2,List3,P), len(List1,L1), Len1 is L1//2, len(List3,Len3),Len1 =:= Len3.
-
-/*（実行例）
-
-
-(説明)
-どう分割しても真偽判定ができるように分割前のリストを置換する。concを使って分割前リスト==分割後リストの結合かどうか判定し、さらに分割前リストの長さ//2==分割後の右のリストの長さかどうかを判定する。分割前リストの長さが奇数のときは分割後は左のリストの要素数が右のリストよりも１多くなるようにした。前回の問題3.9の例解は分割前リストの奇数番目が分割後左リストに、分割前リストの偶数番目が分割後右リストに入っていなければfalseになるが、この別解ではリストの中身がどうであれ２分割されていればtrueになるようにした。
 */
