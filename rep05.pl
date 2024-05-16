@@ -60,18 +60,57 @@ naf(_).
 */
 class(Number,positive) :- Number>0,!.
 class(0,zero) :- !.
-class(Number,negative).
+class(Number,X) :- Number>=0,!,fail.
+class(Number,negative) .
 
-/*（実行例）   
+/*（実行例）
+?- class(1,positive).
+true.
+
+?- class(0,positive).
+false.
+
+?- class(1,negative).
+false.
+
+?- class(1,zero).
+false.
+
+?- class(0,zero).
+true.
+
+?- class(-1,zero).
+false.
+
+?- class(-1,positive).
+false.
+
+?- class(0,negative).
+false.
+
+?- class(-1,negative).
+true.
+
+?- class(1,X).
+X = positive.
+
+?- class(0,X).
+X = zero.
+
+?- class(-1,X).
+X = negative.
 
 (説明)
-上の再帰ルールを適用する場合は第１引数のリストの要素が出力部分集合には残り、下の再帰ルールを適用する場合は第１引数のリストの要素が出力部分集合には残らない。これらのルールが非決定的に適応されるので、すべての部分集合を生成することができる。順番を入れ替えたものをすべて出力するために、リストの置換を生成する関係permutationを用意し、subsの後に適用させた。permutationを実現するためにdelとinsertも用意した。
 
-練習4.5 (p.105)
 
-    acceptsの実行時のループは，たとえばそこまでの動作回数を数えることにより回避できる．
-    そうすると，シュミレータはある決められた長さの道だけを探すように求められる．acceptsをそのように修正せよ．
-    教科書P.104のaccepts/2のプログラムでは無限ループに陥るようなオートマトンを用意して動作確認を行うこと．*/
+問題5.3 (教科書p.133)  
+
+    数のリストを正数のリスト（0も含む）と，負のリストに分割する手続き
+        split(Numbers,Positives,Negatives)
+    を定義せよ．たとえば，
+        split([3,-1,0,5,-2],[3,0,5],[-1,-2])
+    カットを使うプログラム splitA/3 と，使わないプログラム splitB/3 の２つを考えよ．
+*/
 
 accepts(S,[],_) :- final(S).
 accepts(S,[X|Rest],MaxMoves) :- MaxMoves>0,trans(S,X,S1),NewMax is MaxMoves - 1,accepts(S1,Rest).
@@ -84,4 +123,19 @@ accepts(S,String,MaxMoves) :- MaxMoves>0,silent(S,S1),NewMax is MaxMoves - 1,acc
 flat([],[]).
 flat(X,[X]).
 を先にするとflat(Head,FlatHead),flat(Tail,FlatTail)がすぐに事実を満たしてしまい、出力が大量になる。flatの第1引数が[Head|Tail]に分割できる間、先頭Headのリストが外れるまで再帰的に呼び出される。その後リストTailの先頭のリストを同様の手順で外していく。
+
+問題5.6 (教科書p.137)  
+
+        canunify(List1,Term,List2)
+
+    という述語を定義せよ．ここで，List2はTermとマッチする
+    List1の要素から作られるリストである．
+    ただし，このマッチによって値の具体化はなされないとする．
+    例えば，
+
+        ?- canunify([X,b,t(Y)],t(a),List).
+        List=[X,t(Y)]
+
+    X,Yとt(a)とのマッチによって具体化が生じるけれども，
+    X,Yは具体化されてはいけない点に注意せよ．
 */
