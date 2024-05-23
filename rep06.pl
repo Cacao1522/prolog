@@ -253,7 +253,7 @@ dorestca(32) :- !,get0(C),dorestca(C).
 dorestca(Letter) :- put(44),put(32),put(Letter),squeeze.
 
 dorestsp(46) :- !,put(46).
-dorestsp(44) :- !,get0(C),dorestca(C).
+dorestsp(44) :- !,get0(C),dorestca(C). % カンマ関数に移行
 dorestsp(32) :- !,get0(C),dorestsp(C).
 dorestsp(Letter) :- put(32),put(Letter),squeeze.
 
