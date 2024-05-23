@@ -242,12 +242,20 @@ findalltermの引数Termに変数を入れるとその変数にend_of_fileが代
     入れねばならないとする．
 */
 squeeze :- get0(C),dorest(C).
-dorest(46) :- !.
-dorest(44) :- !,get(C),dorest2(C). % 44=,
-dorest(32) :- !,get0(C),put(C),dorest(C). % 32=' '
-dorest2(Letter) :- put(' '),squeeze.
+dorest(46) :- !,put(46).
+dorest(44) :- !,get0(C),dorestca(C). % 44=,
+dorest(32) :- !,get0(C),dorestsp(C). % 32=' '
 dorest(Letter) :- put(Letter),squeeze.
 
+dorestca(46) :- !,put(46).
+dorestca(44) :- !,get0(C),dorestca(C).
+dorestca(32) :- !,get0(C),dorestca(C).
+dorestca(Letter) :- put(44),put(32),put(Letter),squeeze.
+
+dorestsp(46) :- !,put(46).
+dorestsp(44) :- !,get0(C),dorestca(C).
+dorestsp(32) :- !,get0(C),dorestsp(C).
+dorestsp(Letter) :- put(32),put(Letter),squeeze.
 
 /*（実行例）
 
