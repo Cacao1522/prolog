@@ -241,11 +241,12 @@ findalltermの引数Termに変数を入れるとその変数にend_of_fileが代
     のすぐ前の空白はすべて削除し，各カンマのあとには1つの空白を
     入れねばならないとする．
 */
-squeeze :- get0(C),put(C),dorest(C).
+squeeze :- get0(C),dorest(C).
 dorest(46) :- !.
-dorest(44) :- !,get(C),put(C),dorest(C).
-dorest(32) :- !,get(C),put(C),dorest(C).
-dorest(Letter) :- squeeze.
+dorest(44) :- !,get(C),dorest2(C). % 44=,
+dorest(32) :- !,get0(C),put(C),dorest(C). % 32=' '
+dorest2(Letter) :- put(' '),squeeze.
+dorest(Letter) :- put(Letter),squeeze.
 
 
 /*（実行例）
