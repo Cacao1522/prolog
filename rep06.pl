@@ -243,6 +243,7 @@ findalltermの引数Termに変数を入れるとその変数にend_of_fileが代
 */
 squeeze :- get0(C),put(C),dorest(C).
 dorest(46) :- !.
+dorest(44) :- !,get(C),put(C),dorest(C).
 dorest(32) :- !,get(C),put(C),dorest(C).
 dorest(Letter) :- squeeze.
 
