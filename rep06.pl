@@ -1,26 +1,10 @@
 % rep06: 第6回 演習課題レポート
-% 提出日: 2024年5月6日
+% 提出日: 2024年5月24日
 % 学籍番号: 34714037
 % 名前: 加藤薫
 %
 %
-% [述語の説明]
-% mem(X,Y): XがY中に出現するなら真である
-% conc(L1,L2,L3): リストL1とリストL2を連結するとリストL3になるなら真である
-% del(X,L,L1): リストLから項目Xを削除する
-% insert(X,L,L1): リストLの任意の場所に項目Xを挿入する
-% len(List,N): NはリストListの長さ
 % /*ここから本当のPrologプログラムを書く*/
-mem(X,[X | Tail]).
-mem(X, [Head | Tail]) :- mem(X, Tail).
-
-conc([], L, L).
-conc([X|L1], L2, [X|L3]) :- conc(L1, L2, L3).
-
-del(X,[X|Tail],Tail).
-del(X,[Y|Tail],[Y|Tail1]) :-del(X,Tail,Tail1).
-insert(X,List,BiggerList) :- del(X,BiggerList,List).
-
 naf(P) :- P,!,fail.
 naf(_).
 /*
@@ -77,6 +61,9 @@ true.
 ?- findallterm(p(t(X))).
 p(t(b))
 p(_4502)
+true.
+
+?- findallterm(parent(X)).
 true.
 
 ?- findallterm(parent(p(a),t(bob))).
@@ -232,7 +219,8 @@ parent(tom,bob)
    Exit: (12) findallterm(parent(_58, bob)) ? creep
 true.
 (説明)
-まずreadで項を読み、その後処理processを実行する。処理processでは読んだ項がend_of_fileであればカットして終了する。
+まずreadで項を読み、その後処理processを実行する。処理processでは読んだ項がend_of_fileであればカットして終了する。naf(CurrentTerm=Term)は項がマッチしない場合にtrueになり、カットされるため、;でつながれたwriteは実行されない。項がマッチする場合はnaf(CurrentTerm=Term)がfalseになり;でつながれたwriteが実行される。
+現入力ストリームをユーザ端末からファイルfに変えるために、findalltermを実行する前にsee.を実行する。ファイルfにはアトム、数、構造、入れ子になった構造といった様々なものを用意した。実行例ではマッチングするかどうか正しく判断できている。
 findalltermの引数Termに変数を入れるとその変数にend_of_fileが代入されて終了してしまうのでファイルfには変数は含まないようにした。
 
 問題6.3（教科書p.155）
@@ -241,29 +229,45 @@ findalltermの引数Termに変数を入れるとその変数にend_of_fileが代
     のすぐ前の空白はすべて削除し，各カンマのあとには1つの空白を
     入れねばならないとする．
 */
+% ASCII 46==.  44==,  32==' '
 squeeze :- get0(C),dorest(C).
-dorest(46) :- !,put(46).
-dorest(44) :- !,get0(C),dorestca(C). % 44=,
-dorest(32) :- !,get0(C),dorestsp(C). % 32=' '
-dorest(Letter) :- put(Letter),squeeze.
+dorest(46) :- !,put(46). % .が読まれたら.を出力して終了
+dorest(44) :- !,get0(C),dorestca(C). % カンマ手続きに移行
+dorest(32) :- !,get0(C),dorestsp(C). % スペース手続きに移行
+dorest(Letter) :- put(Letter),squeeze. % カンマ空白以外の文字を出力
 
-dorestca(46) :- !,put(46).
-dorestca(44) :- !,get0(C),dorestca(C).
-dorestca(32) :- !,get0(C),dorestca(C).
-dorestca(Letter) :- put(44),put(32),put(Letter),squeeze.
+dorestca(46) :- !,put(46). % .が読まれたら.を出力して終了
+dorestca(44) :- !,get0(C),dorestca(C). % カンマ手続きをループ
+dorestca(32) :- !,get0(C),dorestca(C). % カンマ手続きをループ
+dorestca(Letter) :- put(44),put(32),put(Letter),squeeze. % カンマ、空白、カンマ空白以外の文字を出力
 
-dorestsp(46) :- !,put(46).
-dorestsp(44) :- !,get0(C),dorestca(C). % カンマ関数に移行
-dorestsp(32) :- !,get0(C),dorestsp(C).
-dorestsp(Letter) :- put(32),put(Letter),squeeze.
+dorestsp(46) :- !,put(46). % .が読まれたら.を出力して終了
+dorestsp(44) :- !,get0(C),dorestca(C). % カンマ手続きに移行
+dorestsp(32) :- !,get0(C),dorestsp(C). % スペース手続きをループ
+dorestsp(Letter) :- put(32),put(Letter),squeeze. % 空白、カンマ空白以外の文字を出力
 
 /*（実行例）
+?- squeeze.
+|: Tom  ,Ann, Pat ,, Jim  and    Bob are  student ,.
+Tom, Ann, Pat, Jim and Bob are students.
+true.
 
+?- squeeze.
+|: a,,,b.
+a, b.
+true.
+
+?- squeeze.
+|: a , ,b.
+a, b.
+true.
+
+?- squeeze.
+|: ,,,..
+.
+true.
 
 (説明)
-flat([],[]).
-flat(X,[X]).
-を先にするとflat(Head,FlatHead),flat(Tail,FlatTail)がすぐに事実を満たしてしまい、出力が大量になる。flatの第1引数が[Head|Tail]に分割できる間、先頭Headのリストが外れるまで再帰的に呼び出される。その後リストTailの先頭のリストを同様の手順で外していく。
-
+空白の後にカンマがあったら空白を出力する前にカンマを出力しなければならないため、空白をを読んだ時点では空白を出力することはできない。そのため、空白やカンマを読んだ時点では出力せず、カンマと空白以外の文字を初めて読んだタイミングでカンマ、空白の出力をまとめて行うことにした。空白やカンマが読まれたら空白とカンマ以外の文字を待つ必要があるため別の手続きに移行する必要があり、空白やカンマの連続の中で、空白のみが含まれていたら空白１つを出力し、カンマが含まれていたらカンマ、空白を出力するので、その２パターンでさらに処理を分ける必要がある。空白とカンマ以外の文字を読み込む目標はないため、読み込みの目標はgetを使わず、すべてget0を使う。
 
 */
