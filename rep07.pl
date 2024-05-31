@@ -31,22 +31,48 @@ atom(F1),
 教科書の例解だと?- class(1,negative).と?- class(0,negative).の質問でtrueになってしまう。これは上２つのルールを満たさない場合はすべて一番下のルールに流れてしまうからである。
 解決するには一番下のルールをclass(Number,negative) :- Number<0.とするか、class(0,zero) :- !.の後でNumberが0以上のものをはじくためにclass(Number,X) :- Number>=0,!,fail.を実行するといいと思う。
 
-問題5.3 (教科書p.133)  
 
-    数のリストを正数のリスト（0も含む）と，負のリストに分割する手続き
-        split(Numbers,Positives,Negatives)
-    を定義せよ．たとえば，
-        split([3,-1,0,5,-2],[3,0,5],[-1,-2])
-    カットを使うプログラム splitA/3 と，使わないプログラム splitB/3 の２つを考えよ．
+問題7.5 (教科書p.175)
+
+         subsumes(Term1,Term2)
+    という関係を，Term1がTerm2と等しいか一般的であるように定義せよ．
+    たとえば，
+         ?- subsumes(X,c).
+         yes
+         ?- subsumes(g(X),g(t(Y))).
+         yes
+         ?- subsumes(f(X,X),f(a,b)).
+         no
+    つまり，subsumes(Term1,Term2)は以下の式を満足するときに真を
+    返す述語とする．
+         HB(Term1)⊇HB(Term2)
+    ここでHB(T)は項Tのエルブラン基底の集合を表す．
 */
-splitA([],[],[]). % % 最後にすべての引数が空になれば成功
-splitA([X|L],[X|L1],L2) :- X>=0,!,splitA(L,L1,L2). % 第一引数の要素が正の場合、第二引数に追加
-splitA([X|L],L1,[X|L2]) :- splitA(L,L1,L2). % 第一引数の要素が負の場合、第三引数に追加
+naf(P) :- P,!,fail.
+naf(_).
+canmatch(Term1,Term2) :- naf(Term1=Term2),!,fail. % 項がマッチしないならカット
+canmatch(Term1,Term2).
+% Term1が変数の場合、常にTrue
+subsume(Term1, _) :-
+    var(Term1), !.
 
-splitB([],[],[]).
-splitB([X|L],[X|L1],L2) :- X>=0,splitB(L,L1,L2).
-splitB([X|L],L1,[X|L2]) :- X<0,splitB(L,L1,L2).
+% Term1とTerm2が同じアトムの場合、True
+subsume(Term1, Term2) :-
+    atomic(Term1), atomic(Term2), Term1 == Term2, !.
 
+% Term1とTerm2が複合項で、同じファンクタとアリティを持つ場合
+subsume(Term1, Term2) :-
+    compound(Term1), compound(Term2),
+    Term1 =.. [F|Args1],
+    Term2 =.. [F|Args2],
+    canmatch(Args1,Args2),
+    subsumes_list(Args1, Args2).
+
+% 引数のリストが対照的に包含関係にあるかをチェック
+subsumes_list([], []).
+subsumes_list([H1 | T1], [H2 | T2]) :-
+    subsume(H1, H2),
+    subsumes_list(T1, T2).
 /*（実行例）
 
 
