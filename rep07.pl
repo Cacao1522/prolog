@@ -1,5 +1,5 @@
-% rep05: 第7回 演習課題レポート
-% 提出日: 2024年5月19日
+% rep07: 第7回 演習課題レポート
+% 提出日: 2024年6月1日
 % 学籍番号: 34714037
 % 名前: 加藤薫
 %
@@ -10,27 +10,81 @@
     なら真となるように定義せよ．
 */
 gnd(Term) :-
-    nonvar(Term),       % Term is not a variable
-    Term =.. [F|Args],          % Decompose the term into a list
-    check_all_ground(Args). % Check if all elements of the list are ground
+    nonvar(Term),       % 変数ならfalse
+    Term =.. [F|Args],  % ArgsにはTermがアトムなら[]が、構造なら引数のリストが入る
+    gnd_check(Args). % 引数のリストの中に変数がないか再帰的に調べる
 
-% Helper predicate to check if all elements of the list are ground
-check_all_ground([]).       % Base case: empty list is ground
-check_all_ground([H|T]) :-
-    gnd(H),              % Check if head is ground
-    check_all_ground(T).    % Recursively check the tail
+gnd_check([]).       
+gnd_check([H|T]) :-
+    gnd(H),          % リストの先頭が変数でないか確認
+    gnd_check(T).    % リストの次の要素を調べる
 
 /*（実行例）
-atom(F1),
-    Args = [F2|_],
-    (var(F2),!,fail);
-    gnd(F2).
+?- gnd(a).
+true.
+
+?- gnd(X).
+false.
+
+?- gnd(p(a,1)).
+true.
+
+?- gnd([a,1]).
+true.
+
+?- gnd([a,A]).
+false.
+
+?- gnd([a,p(A)]).
+false.
+
+[trace]  ?- gnd(p(1,b(3,Y))).
+   Call: (12) gnd(p(1, b(3, _9470))) ? creep
+   Call: (13) nonvar(p(1, b(3, _9470))) ? creep
+   Exit: (13) nonvar(p(1, b(3, _9470))) ? creep
+   Call: (13) p(1, b(3, _9470))=..[_12414|_12416] ? creep
+   Exit: (13) p(1, b(3, _9470))=..[p, 1, b(3, _9470)] ? creep
+   Call: (13) gnd_check([1, b(3, _9470)]) ? creep
+   Call: (14) gnd(1) ? creep
+   Call: (15) nonvar(1) ? creep
+   Exit: (15) nonvar(1) ? creep
+   Call: (15) 1=..[_17276|_17278] ? creep
+   Exit: (15) 1=..[1] ? creep
+   Call: (15) gnd_check([]) ? creep
+   Exit: (15) gnd_check([]) ? creep
+   Exit: (14) gnd(1) ? creep
+   Call: (14) gnd_check([b(3, _9470)]) ? creep
+   Call: (15) gnd(b(3, _9470)) ? creep
+   Call: (16) nonvar(b(3, _9470)) ? creep
+   Exit: (16) nonvar(b(3, _9470)) ? creep
+   Call: (16) b(3, _9470)=..[_24544|_24546] ? creep
+   Exit: (16) b(3, _9470)=..[b, 3, _9470] ? creep
+   Call: (16) gnd_check([3, _9470]) ? creep
+   Call: (17) gnd(3) ? creep
+   Call: (18) nonvar(3) ? creep
+   Exit: (18) nonvar(3) ? creep
+   Call: (18) 3=..[_29406|_29408] ? creep
+   Exit: (18) 3=..[3] ? creep
+   Call: (18) gnd_check([]) ? creep
+   Exit: (18) gnd_check([]) ? creep
+   Exit: (17) gnd(3) ? creep
+   Call: (17) gnd_check([_58]) ? creep
+   Call: (18) gnd(_58) ? creep
+   Call: (19) nonvar(_58) ? creep
+   Fail: (19) nonvar(_58) ? creep % 変数Yでfalse
+   Fail: (18) gnd(_58) ? creep
+   Fail: (17) gnd_check([_58]) ? creep
+   Fail: (16) gnd_check([3, _58]) ? creep
+   Fail: (15) gnd(b(3, _58)) ? creep
+   Fail: (14) gnd_check([b(3, _58)]) ? creep
+   Fail: (13) gnd_check([1, b(3, _58)]) ? creep
+   Fail: (12) gnd(p(1, b(3, _58))) ? creep
+false.
 
 (説明)
-カットを使わない場合と比べると一番下のルールclass(Number,negative).はNumberのチェックを省略できるという点で効率的に定義できている。
-教科書の例解だと?- class(1,negative).と?- class(0,negative).の質問でtrueになってしまう。これは上２つのルールを満たさない場合はすべて一番下のルールに流れてしまうからである。
-解決するには一番下のルールをclass(Number,negative) :- Number<0.とするか、class(0,zero) :- !.の後でNumberが0以上のものをはじくためにclass(Number,X) :- Number>=0,!,fail.を実行するといいと思う。
-
+Termが構造の場合、引数は複数ある可能性があり、構造の入れ子の数と引数の数だけループして変数が存在しないか調べるため、手続きgnd_checkを用意した。ArgsにはTermがアトムなら[]が入り、すぐにgnd_check([]). を満たす。
+Termが構造の場合、Term =.. [F|Args]でFには関数子が入り、関数子はアトムでなければならないが、そもそも関数子がアトムでなければ実行時にエラーとなるので、Fがアトムかどうかの確認はしていない。
+traceの実行例では、入れ子の構造の関数子とアリティを分解できていて、アリティに含まれている変数をnonvarで検出できている。
 
 問題7.5 (教科書p.175)
 
@@ -51,63 +105,144 @@ atom(F1),
 naf(P) :- P,!,fail.
 naf(_).
 canmatch(Term1,Term2) :- naf(Term1=Term2),!,fail. % 項がマッチしないならカット
-canmatch(Term1,Term2).
-% Term1が変数の場合、常にTrue
-subsume(Term1, _) :-
-    var(Term1), !.
+canmatch(Term1,Term2). % 項がマッチするならTrueを返す
 
-% Term1とTerm2が同じアトムの場合、True
-subsume(Term1, Term2) :-
-    atomic(Term1), atomic(Term2), Term1 == Term2, !.
+% Term1が変数ならTrue
+subsume(Term1, _) :- var(Term1), !.
 
-% Term1とTerm2が複合項で、同じファンクタとアリティを持つ場合
+% Term1とTerm2が同じアトムならTrue
+subsume(Term1, Term2) :- atomic(Term1), atomic(Term2), Term1 == Term2, !.
+
+% Term1とTerm2が構造またはリストで、同じ関数子とアリティを持つ（アリティは「右より左の方が一般的」でもよい）ならTrue
 subsume(Term1, Term2) :-
     compound(Term1), compound(Term2),
     Term1 =.. [F|Args1],
     Term2 =.. [F|Args2],
     canmatch(Args1,Args2),
-    subsumes_list(Args1, Args2).
+    subsume_check(Args1, Args2).
 
-% 引数のリストが対照的に包含関係にあるかをチェック
-subsumes_list([], []).
-subsumes_list([H1 | T1], [H2 | T2]) :-
+subsume_check([], []).
+subsume_check([H1 | T1], [H2 | T2]) :-
     subsume(H1, H2),
-    subsumes_list(T1, T2).
+    subsume_check(T1, T2).
+    
 /*（実行例）
+?- subsume(c,c).
+true.
 
+?- subsume(X,c).
+true.
+
+?- subsume(c,X).
+false.
+
+?- subsume(g(X),g(t(Y))).
+true.
+
+?- subsume(g(t(X)),g(Y)).
+false.
+
+?- subsume([A,B,C],[a,b,C]).
+true.
+
+?- subsume([a,B,C],[A,b,C]).
+false.
+
+?- subsume([B,B,C],[A,b,C]).
+true.
+
+?- subsume([B,B,C],[a,b,C]).
+false.
+
+[trace]  ?- subsume(f(X,X),f(a,b)).
+   Call: (12) subsume(f(_2554, _2554), f(a, b)) ? creep
+   Call: (13) var(f(_2554, _2554)) ? creep
+   Fail: (13) var(f(_2554, _2554)) ? creep
+   Redo: (12) subsume(f(_2554, _2554), f(a, b)) ? creep
+   Call: (13) atomic(f(_2554, _2554)) ? creep
+   Fail: (13) atomic(f(_2554, _2554)) ? creep
+   Redo: (12) subsume(f(_2554, _2554), f(a, b)) ? creep
+   Call: (13) compound(f(_2554, _2554)) ? creep
+   Exit: (13) compound(f(_2554, _2554)) ? creep
+   Call: (13) compound(f(a, b)) ? creep
+   Exit: (13) compound(f(a, b)) ? creep
+   Call: (13) f(_2554, _2554)=..[_11970|_11972] ? creep
+   Exit: (13) f(_2554, _2554)=..[f, _2554, _2554] ? creep
+   Call: (13) f(a, b)=..[f|_13610] ? creep
+   Exit: (13) f(a, b)=..[f, a, b] ? creep
+   Call: (13) canmatch([_2554, _2554], [a, b]) ? creep
+   Call: (14) naf([_2554, _2554]=[a, b]) ? creep
+   Call: (15) [_2554, _2554]=[a, b] ? creep
+   Fail: (15) [_2554, _2554]=[a, b] ? creep
+   Redo: (14) naf([_2554, _2554]=[a, b]) ? creep
+   Exit: (14) naf([_2554, _2554]=[a, b]) ? creep % マッチングができないのでfalse
+   Call: (14) fail ? creep
+   Fail: (14) fail ? creep
+   Fail: (13) canmatch([_2554, _2554], [a, b]) ? creep
+   Fail: (12) subsume(f(_2554, _2554), f(a, b)) ? creep
+false.
 
 (説明)
-第一引数の要素を順に調べ、要素が正の場合は第二引数に追加し、要素が負の場合は第三引数に追加する。
-カットを使う場合はX>=0を満たす場合、下のルールは探索されず、下のルールはX>=0を満たさない場合、つまりX<0の場合のみ実行されるため、下のルールにX<0を加える必要はない。
-カットを使和ない場合はX>=0を満たす場合も下のルールは探索されるため、当然下のルールにX<0を加える必要がある。
+マッチするかどうかという情報だけでは一般的であるというのは判断できないので、オブジェクトの型によって判定方法を変えた。Term1が変数ならTerm2が何であれTrueとなる。Term1とTerm2が同じアトムならTrueとなる。
+Term1とTerm2が構造またはリストの場合は、中身が条件を満たしているか再帰的に調べる必要があり、Term1 =.. [F|Args1], Term2 =.. [F|Args2]で同じ関数子を持っていることを確認し、canmatch(Args1,Args2)でマッチングできるかを調べ、subsume(f(X,X),f(a,b))のように具体化できない変数があればFalseを返す。
+その後、手続きsubsume_check(Args1, Args2)で引数一組ずつに関して、Args2よりもArgs1の方が一般的かを調べる。
+traceの実行例では、型判定、構造の関数子とアリティの分解はできていて、canmatchの中でマッチングが失敗してfalseになっている。
 
-問題5.6 (教科書p.137)  
+問題7.8 (教科書p.185)
 
-        canunify(List1,Term,List2)
-
-    という述語を定義せよ．ここで，List2はTermとマッチする
-    List1の要素から作られるリストである．
-    ただし，このマッチによって値の具体化はなされないとする．
-    例えば，
-
-        ?- canunify([X,b,t(Y)],t(a),List).
-        List=[X,t(Y)]
-
-    X,Yとt(a)とのマッチによって具体化が生じるけれども，
-    X,Yは具体化されてはいけない点に注意せよ．
+与えられた集合(集合はリストで表わされるとする)のすべての部分集合の集合を
+計算するために，関係powerset(Set,Subsets)をbagofを用いて定義せよ
 */
-naf(P) :- P,!,fail.
-naf(_).
-canunify([],_,[]). % 最後に第一引数と第三引数が空になれば成功
-canunify([First|Rest],Term,List) :- naf(First=Term),!,canunify(Rest,Term,List). % First=Termが成立しない場合はカット
-canunify([First|Rest],Term,[First|List]) :- canunify(Rest,Term,List). % First=Termが成り立つ場合、つまりマッチする場合は第一引数を第三引数に追加
+subs([],[]).
+subs([Head|Tail],[Head|Sub]) :- subs(Tail,Sub). % 第１、第２引数ともに先頭を消す（出力部分集合には残る）
+subs([_|Tail],Sub) :- subs(Tail,Sub). % 第１引数の先頭を消す（出力部分集合には残らない）
+
+powerset(Set, Subsets) :- bagof(Subset, subs(Set, Subset), Subsets).
 
 /*（実行例）
+?- powerset([a],[[a],[]]).
+true.
 
+?- powerset([a],[[],[a]]).
+false.
+
+?- powerset([a,b,c],X).
+X = [[a, b, c], [a, b], [a, c], [a], [b, c], [b], [c], []].
+
+?- powerset([a,b,a],X).
+X = [[a, b, a], [a, b], [a, a], [a], [b, a], [b], [a], []].
+
+[trace]  ?- powerset([a,b],X).
+   Call: (12) powerset([a, b], _24986) ? creep
+^  Call: (13) bagof(_26332, subs([a, b], _26332), _24986) ? creep
+   Call: (18) subs([a, b], _26332) ? creep
+   Call: (19) subs([b], _28024) ? creep
+   Call: (20) subs([], _28840) ? creep
+   Exit: (20) subs([], []) ? creep
+   Exit: (19) subs([b], [b]) ? creep
+   Exit: (18) subs([a, b], [a, b]) ? creep
+   Redo: (19) subs([b], _28024) ? creep
+   Call: (20) subs([], _28024) ? creep
+   Exit: (20) subs([], []) ? creep
+   Exit: (19) subs([b], []) ? creep
+   Exit: (18) subs([a, b], [a]) ? creep
+   Redo: (18) subs([a, b], _26332) ? creep
+   Call: (19) subs([b], _26332) ? creep
+   Call: (20) subs([], _37756) ? creep
+   Exit: (20) subs([], []) ? creep
+   Exit: (19) subs([b], [b]) ? creep
+   Exit: (18) subs([a, b], [b]) ? creep
+   Redo: (19) subs([b], _26332) ? creep
+   Call: (20) subs([], _26332) ? creep
+   Exit: (20) subs([], []) ? creep
+   Exit: (19) subs([b], []) ? creep
+   Exit: (18) subs([a, b], []) ? creep
+^  Exit: (13) bagof(_26332, user:subs([a, b], _26332), [[a, b], [a], [b], []]) ? creep
+   Exit: (12) powerset([a, b], [[a, b], [a], [b], []]) ? creep
+X = [[a, b], [a], [b], []].
 
 (説明)
-traceの実行結果からも分かるように、マッチする場合はnaf(First=Term)でfailが呼び出され下のルールcanunify([First|Rest],Term,[First|List]) :- canunify(Rest,Term,List).を適用して第一引数を第三引数の結果リストに追加している。マッチしない場合はnaf(First=Term)でtrueとなり、下のルールを呼び出さないようにカットして後ろにあるcanunify(Rest,Term,List)が実行される。要素を消去していって第一引数と第三引数が空になれば成功である。
-ちなみに下のように値を具体化しても述語の出力結果としては正しくできた。
-canunify2([First|Rest],Term,[First|List]) :- First=Term,!,canunify(Rest,Term,List). 
-canunify2([First|Rest],Term,List) :- canunify(Rest,Term,List). 
+bagofによってsubsのすべての解をリストに集めて出力することができる。subs(Set, Subset)をbagofの第一引数に、出力Subsetを第二引数に、powersetの出力Subsetsを第三引数に置けばよい。
+traceの結果を見るとbagofは組み込み手続きだからなのか、bagofの処理は出力されなかった。
+作成したpowersetはbagofの仕様上、第一引数にリスト、第二引数に変数という使い方以外の使い方はうまくできない場合が多い。
 */
